@@ -11,11 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uk.nktnet.webviewkiosk.config.remote.inbound.InboundGoToUrlCommand
-import uk.nktnet.webviewkiosk.config.remote.inbound.InboundInstallLocalFileCommand
-import uk.nktnet.webviewkiosk.utils.LocalFileInstaller
-import uk.nktnet.webviewkiosk.utils.getLocalFileLink
-import uk.nktnet.webviewkiosk.utils.getWebContentFilesDir
 import uk.nktnet.webviewkiosk.R
 import uk.nktnet.webviewkiosk.config.SystemSettings
 import uk.nktnet.webviewkiosk.config.UserSettings
@@ -23,8 +18,11 @@ import uk.nktnet.webviewkiosk.config.remote.inbound.InboundClearCacheCommand
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundClearHistoryCommand
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundCommandMessage
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundErrorRequest
+import uk.nktnet.webviewkiosk.config.remote.inbound.InboundGoToUrlCommand
+import uk.nktnet.webviewkiosk.config.remote.inbound.InboundInstallLocalFileCommand
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundLaunchPackageCommand
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundLaunchablePackagesRequest
+import uk.nktnet.webviewkiosk.config.remote.inbound.InboundLocalFileInfoRequest
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundLockDeviceCommand
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundLockTaskPackagesRequest
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundNotifyCommand
@@ -36,6 +34,8 @@ import uk.nktnet.webviewkiosk.config.remote.inbound.InboundStatusRequest
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundSystemInfoRequest
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundToastCommand
 import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundDisconnectingEvent
+import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundInstallLocalFileResponse
+import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundLocalFileInfoResponse
 import uk.nktnet.webviewkiosk.managers.AppFlowManager
 import uk.nktnet.webviewkiosk.managers.CustomNotificationManager
 import uk.nktnet.webviewkiosk.managers.DeviceOwnerManager
@@ -43,8 +43,11 @@ import uk.nktnet.webviewkiosk.managers.MqttManager
 import uk.nktnet.webviewkiosk.managers.RemoteMessageManager
 import uk.nktnet.webviewkiosk.managers.ToastManager
 import uk.nktnet.webviewkiosk.states.UserInteractionStateSingleton
+import uk.nktnet.webviewkiosk.utils.LocalFileInstaller
+import uk.nktnet.webviewkiosk.utils.getLocalFileLink
 import uk.nktnet.webviewkiosk.utils.getStatus
 import uk.nktnet.webviewkiosk.utils.getSystemInfo
+import uk.nktnet.webviewkiosk.utils.getWebContentFilesDir
 import uk.nktnet.webviewkiosk.utils.openPackage
 import uk.nktnet.webviewkiosk.utils.wakeScreen
 import uk.nktnet.webviewkiosk.utils.webview.WebViewNavigation
@@ -84,30 +87,7 @@ object RemoteInboundHandler {
                 WebViewNavigation.clearHistory(systemSettings)
             }
             is InboundClearCacheCommand -> {
-                WebViewStartup.awaitReady(context.applicationContext)
-                withContext(Dispatchers.Main) {
-                    try {
-                        val webView = WebView(context)
-                        try {
-                            webView.clearCache(true)
-                        } finally {
-                            webView.destroy()
-                        }
-                    } catch (e: Exception) {
-                        ToastManager.show(
-                            context,
-                            context.getString(
-                                R.string
-                                    .settings_more_action_toast_cache_clear_failed
-                            ),
-                        )
-                        Log.e(
-                            javaClass.simpleName,
-                            "Failed to clear webView cache",
-                            e,
-                        )
-                    }
-                }
+                clearWebViewCache(context)
             }
             is InboundToastCommand -> {
                 if (!command.data?.message.isNullOrEmpty()) {
@@ -172,6 +152,28 @@ object RemoteInboundHandler {
         }
     }
 
+    private suspend fun clearWebViewCache(context: Context) {
+        WebViewStartup.awaitReady(context.applicationContext)
+        withContext(Dispatchers.Main) {
+            try {
+                val webView = WebView(context)
+                try {
+                    webView.clearCache(true)
+                } finally {
+                    webView.destroy()
+                }
+            } catch (e: Exception) {
+                ToastManager.show(
+                    context,
+                    context.getString(
+                        R.string.settings_more_action_toast_cache_clear_failed
+                    ),
+                )
+                Log.e(javaClass.simpleName, "Failed to clear webView cache", e)
+            }
+        }
+    }
+
     private val installScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** Runs off the command queue so a long download never blocks other commands. */
@@ -181,6 +183,7 @@ object RemoteInboundHandler {
     ) {
         if (!LocalFileInstaller.tryAcquire()) {
             ToastManager.show(context, "install_local_file failed: busy")
+            publishInstallReply(command, ok = false, error = "busy")
             return
         }
         installScope.launch {
@@ -203,6 +206,8 @@ object RemoteInboundHandler {
                     UserSettings(context).homeUrl = link
                 }
                 if (d.navigate) {
+                    // Drop stale cached copies so the new file is always loaded.
+                    clearWebViewCache(context)
                     RemoteMessageManager.emitCommand(
                         InboundGoToUrlCommand(
                             data = InboundGoToUrlCommand.UrlData(link)
@@ -214,15 +219,77 @@ object RemoteInboundHandler {
                     context,
                     "install_local_file ok: $name (${result.bytes} bytes)",
                 )
+                publishInstallReply(
+                    command,
+                    ok = true,
+                    filename = name,
+                    url = link,
+                    setAsHome = d.setAsHome,
+                )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: LocalFileInstaller.InstallException) {
                 ToastManager.show(context, "install_local_file failed: ${e.message}")
+                publishInstallReply(command, ok = false, error = e.message)
             } catch (e: Exception) {
                 Log.e(javaClass.simpleName, "install_local_file failed", e)
                 ToastManager.show(context, "install_local_file failed")
+                publishInstallReply(command, ok = false, error = "install failed")
             } finally {
                 LocalFileInstaller.release()
             }
         }
+    }
+
+    private fun publishInstallReply(
+        command: InboundInstallLocalFileCommand,
+        ok: Boolean,
+        filename: String? = null,
+        url: String? = null,
+        setAsHome: Boolean? = null,
+        error: String? = null,
+    ) {
+        try {
+            MqttManager.publishInstallLocalFileResponse(
+                command.messageId,
+                OutboundInstallLocalFileResponse.Data(
+                    ok = ok,
+                    filename = filename,
+                    url = url,
+                    setAsHome = setAsHome,
+                    error = error,
+                ),
+            )
+        } catch (e: Exception) {
+            Log.e(javaClass.simpleName, "Failed to publish install reply", e)
+        }
+    }
+
+    /** Lists installed remote files (skipping .bak backups) in the web content dir. */
+    private fun getLocalFileInfo(context: Context): OutboundLocalFileInfoResponse.Data {
+        val files =
+            getWebContentFilesDir(context)
+                .listFiles()
+                .orEmpty()
+                .filter {
+                    it.isFile &&
+                        it.name.startsWith(LocalFileInstaller.FILE_PREFIX) &&
+                        !it.name.endsWith(".bak")
+                }
+                .sortedBy { it.name }
+                .map {
+                    OutboundLocalFileInfoResponse.FileInfo(
+                        filename =
+                            it.name.removePrefix(LocalFileInstaller.FILE_PREFIX),
+                        size = it.length(),
+                        modified = it.lastModified(),
+                        url = it.getLocalFileLink(),
+                    )
+                }
+        return OutboundLocalFileInfoResponse.Data(
+            files = files,
+            homeUrl = UserSettings(context).homeUrl,
+        )
     }
 
     fun handleInboundSettings(
@@ -322,6 +389,12 @@ object RemoteInboundHandler {
                         AppFlowManager.getLockTaskPackageNames(context).sorted(),
                     )
                 }
+            }
+            is InboundLocalFileInfoRequest -> {
+                MqttManager.publishLocalFileInfoResponse(
+                    request,
+                    getLocalFileInfo(context),
+                )
             }
             is InboundErrorRequest -> {
                 ToastManager.show(

@@ -91,6 +91,57 @@ data class OutboundLockTaskPackagesResponse(
 }
 
 @Serializable
+@SerialName("install_local_file")
+data class OutboundInstallLocalFileResponse(
+    override var messageId: String,
+    override val username: String,
+    override val appInstanceId: String,
+    override val requestMessageId: String?,
+    override val correlationData: String?,
+    val data: Data,
+) : OutboundResponseMessage {
+    override fun getType(): String = "install_local_file"
+
+    @Serializable
+    data class Data(
+        val type: String = "install_local_file",
+        val ok: Boolean,
+        val filename: String? = null,
+        val url: String? = null,
+        val setAsHome: Boolean? = null,
+        val error: String? = null,
+    )
+}
+
+@Serializable
+@SerialName("local_file_info")
+data class OutboundLocalFileInfoResponse(
+    override var messageId: String,
+    override val username: String,
+    override val appInstanceId: String,
+    override val requestMessageId: String?,
+    override val correlationData: String?,
+    val data: Data,
+) : OutboundResponseMessage {
+    override fun getType(): String = "local_file_info"
+
+    @Serializable
+    data class Data(
+        val type: String = "local_file_info",
+        val files: List<FileInfo>,
+        val homeUrl: String,
+    )
+
+    @Serializable
+    data class FileInfo(
+        val filename: String,
+        val size: Long,
+        val modified: Long,
+        val url: String,
+    )
+}
+
+@Serializable
 @SerialName("error")
 data class OutboundErrorResponse(
     override var messageId: String,
