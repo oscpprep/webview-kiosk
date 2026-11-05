@@ -1,23 +1,43 @@
 name: Build Debug APK
+
 on:
   pull_request:
   push:
     branches: [feature/install-local-file]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
-        with: { distribution: jetbrains, java-version: '21' }
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - uses: android-actions/setup-android@v3
+
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew checkFormatting
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Check formatting (non-blocking)
+        run: ./gradlew checkFormatting --no-daemon
         continue-on-error: true
-      - run: ./gradlew :adblock:test :app:testDebugUnitTest
-      - run: ./gradlew :app:assembleDebug
-      - uses: actions/upload-artifact@v4
+
+      - name: Unit tests
+        run: ./gradlew :adblock:test :app:testDebugUnitTest --no-daemon
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: webview-kiosk-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
