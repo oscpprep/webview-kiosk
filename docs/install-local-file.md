@@ -41,14 +41,35 @@ When `navigate` is true the WebView cache is cleared before navigating.
 Published to the configured **Response** topic (`responseType` = `install_local_file`):
 
 ```json
-{"responseType":"install_local_file","messageId":"...","username":"...","appInstanceId":"...","requestMessageId":"install-001","correlationData":null,
- "data":{"type":"install_local_file","ok":true,"filename":"page.html","url":"https://appassets.androidplatform.net/web-content-files/remote%7Cpage.html","setAsHome":true}}
+{
+  "responseType": "install_local_file",
+  "messageId": "...",
+  "username": "...",
+  "appInstanceId": "...",
+  "requestMessageId": "install-001",
+  "correlationData": null,
+  "data": {
+    "type": "install_local_file",
+    "ok": true,
+    "filename": "page.html",
+    "url": "https://appassets.androidplatform.net/web-content-files/remote%7Cpage.html",
+    "setAsHome": true
+  }
+}
 ```
 
 Failure:
 
 ```json
-{"responseType":"install_local_file", "...": "...", "data":{"type":"install_local_file","ok":false,"error":"sha256 mismatch"}}
+{
+  "responseType": "install_local_file",
+  "...": "...",
+  "data": {
+    "type": "install_local_file",
+    "ok": false,
+    "error": "sha256 mismatch"
+  }
+}
 ```
 
 Possible errors: `busy`, `invalid url`, `https required`, `invalid sha256`, `invalid filename`, `http <code>`,
@@ -57,17 +78,28 @@ Possible errors: `busy`, `invalid url`, `https required`, `invalid sha256`, `inv
 ## `local_file_info` request
 
 ```json
-{"requestType":"local_file_info","messageId":"info-1"}
+{ "requestType": "local_file_info", "messageId": "info-1" }
 ```
 
 Response (`responseType` = `local_file_info`):
 
 ```json
-{"responseType":"local_file_info", "...": "...",
- "data":{"type":"local_file_info",
-   "files":[{"filename":"page.html","size":12345,"modified":1700000000000,
-             "url":"https://appassets.androidplatform.net/web-content-files/remote%7Cpage.html"}],
-   "homeUrl":"https://appassets.androidplatform.net/web-content-files/remote%7Cpage.html"}}
+{
+  "responseType": "local_file_info",
+  "...": "...",
+  "data": {
+    "type": "local_file_info",
+    "files": [
+      {
+        "filename": "page.html",
+        "size": 12345,
+        "modified": 1700000000000,
+        "url": "https://appassets.androidplatform.net/web-content-files/remote%7Cpage.html"
+      }
+    ],
+    "homeUrl": "https://appassets.androidplatform.net/web-content-files/remote%7Cpage.html"
+  }
+}
 ```
 
 `.bak` backups are not listed.
