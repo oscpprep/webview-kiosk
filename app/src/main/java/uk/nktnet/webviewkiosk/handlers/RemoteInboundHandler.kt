@@ -4,9 +4,18 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import android.webkit.WebView
+import java.io.File
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uk.nktnet.webviewkiosk.config.remote.inbound.InboundGoToUrlCommand
+import uk.nktnet.webviewkiosk.config.remote.inbound.InboundInstallLocalFileCommand
+import uk.nktnet.webviewkiosk.utils.LocalFileInstaller
+import uk.nktnet.webviewkiosk.utils.getLocalFileLink
+import uk.nktnet.webviewkiosk.utils.getWebContentFilesDir
 import uk.nktnet.webviewkiosk.R
 import uk.nktnet.webviewkiosk.config.SystemSettings
 import uk.nktnet.webviewkiosk.config.UserSettings
@@ -155,8 +164,64 @@ object RemoteInboundHandler {
                     ),
                 )
             }
+            is InboundInstallLocalFileCommand -> {
+                installLocalFile(context.applicationContext, command)
+            }
             // Webview-related commands are handled in WebviewScreen.kt
             else -> Unit
+        }
+    }
+
+    private val installScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** Runs off the command queue so a long download never blocks other commands. */
+    private fun installLocalFile(
+        context: Context,
+        command: InboundInstallLocalFileCommand,
+    ) {
+        if (!LocalFileInstaller.tryAcquire()) {
+            ToastManager.show(context, "install_local_file failed: busy")
+            return
+        }
+        installScope.launch {
+            try {
+                val d = command.data
+                val uri = LocalFileInstaller.validateUrl(d.url)
+                val sha = LocalFileInstaller.validateSha256(d.sha256)
+                val name = LocalFileInstaller.sanitizeFilename(d.filename, uri)
+                val result =
+                    LocalFileInstaller.download(
+                        uri,
+                        d.headers,
+                        sha,
+                        File(context.cacheDir, "remote-tmp"),
+                        getWebContentFilesDir(context),
+                        name,
+                    )
+                val link = result.file.getLocalFileLink()
+                if (d.setAsHome) {
+                    UserSettings(context).homeUrl = link
+                }
+                if (d.navigate) {
+                    RemoteMessageManager.emitCommand(
+                        InboundGoToUrlCommand(
+                            data = InboundGoToUrlCommand.UrlData(link)
+                        ),
+                        RemoteMessageManager.RemoteMessage.Source.MQTT,
+                    )
+                }
+                ToastManager.show(
+                    context,
+                    "install_local_file ok: $name (${result.bytes} bytes)",
+                )
+            } catch (e: LocalFileInstaller.InstallException) {
+                ToastManager.show(context, "install_local_file failed: ${e.message}")
+            } catch (e: Exception) {
+                Log.e(javaClass.simpleName, "install_local_file failed", e)
+                ToastManager.show(context, "install_local_file failed")
+            } finally {
+                LocalFileInstaller.release()
+            }
         }
     }
 

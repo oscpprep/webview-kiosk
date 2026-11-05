@@ -255,6 +255,32 @@ data class InboundLaunchPackageCommand(
 }
 
 @Serializable
+@SerialName("install_local_file")
+data class InboundInstallLocalFileCommand(
+    override val messageId: String? = null,
+    override val targetInstances: Set<String>? = null,
+    override val targetUsernames: Set<String>? = null,
+    override val interact: Boolean = true,
+    override val wakeScreen: Boolean = false,
+    val data: Data,
+) : InboundCommandMessage {
+    @Serializable
+    data class Data(
+        val url: String,
+        val sha256: String,
+        val filename: String? = null,
+        val setAsHome: Boolean = true,
+        val navigate: Boolean = true,
+        val headers: Map<String, String> = emptyMap(),
+    ) {
+        // Never expose headers (may contain credentials) in logs.
+        override fun toString() = "Data(url=$url, filename=$filename)"
+    }
+
+    override fun toString() = "install_local_file"
+}
+
+@Serializable
 @SerialName("error")
 data class InboundErrorCommand(
     override val messageId: String? = null,
