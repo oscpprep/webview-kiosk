@@ -82,9 +82,13 @@ object LocalFileInstaller {
             val buf = ByteArray(64 * 1024)
             while (true) {
                 val n = input.read(buf)
-                if (n < 0) break
+                if (n < 0) {
+                    break
+                }
                 total += n
-                if (total > maxBytes) throw InstallException("file too large")
+                if (total > maxBytes) {
+                    throw InstallException("file too large")
+                }
                 digest.update(buf, 0, n)
                 out.write(buf, 0, n)
             }
@@ -95,8 +99,8 @@ object LocalFileInstaller {
 
     /**
      * Verifies [temp] against [expectedSha], then atomically swaps it into
-     * [targetDir]/remote|<filename>, keeping one .bak generation. On any failure
-     * the temp file is deleted and the existing target is left unchanged.
+     * [targetDir]/remote|<filename>, keeping one .bak generation. On any failure the
+     * temp file is deleted and the existing target is left unchanged.
      */
     fun commit(
         temp: File,
@@ -115,10 +119,14 @@ object LocalFileInstaller {
             val bak = File(targetDir, FILE_PREFIX + filename + ".bak")
             if (target.exists()) {
                 bak.delete()
-                if (!target.renameTo(bak)) throw InstallException("backup failed")
+                if (!target.renameTo(bak)) {
+                    throw InstallException("backup failed")
+                }
             }
             if (!temp.renameTo(target)) {
-                if (bak.exists()) bak.renameTo(target)
+                if (bak.exists()) {
+                    bak.renameTo(target)
+                }
                 throw InstallException("rename failed")
             }
             return Result(target, actualSha.lowercase(), bytes)
@@ -146,7 +154,9 @@ object LocalFileInstaller {
             headers.forEach { (k, v) -> conn.setRequestProperty(k, v) }
             try {
                 val code = conn.responseCode
-                if (code !in 200..299) throw InstallException("http $code")
+                if (code !in 200..299) {
+                    throw InstallException("http $code")
+                }
                 if (conn.contentLengthLong > MAX_BYTES) {
                     throw InstallException("file too large")
                 }

@@ -265,8 +265,12 @@ object RemoteInboundHandler {
         }
     }
 
-    /** Lists installed remote files (skipping .bak backups) in the web content dir. */
-    private fun getLocalFileInfo(context: Context): OutboundLocalFileInfoResponse.Data {
+    /**
+     * Lists installed remote files (skipping .bak backups) in the web content dir.
+     */
+    private fun getLocalFileInfo(
+        context: Context
+    ): OutboundLocalFileInfoResponse.Data {
         val files =
             getWebContentFilesDir(context)
                 .listFiles()

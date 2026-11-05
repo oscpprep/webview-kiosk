@@ -154,11 +154,14 @@ class HomeAssistantCatalogTest {
         val components = payload().getValue("components").jsonObject
         val commandNames = variants(InboundCommandMessage.serializer().descriptor)
         val requestNames = variants(InboundRequestMessage.serializer().descriptor)
-        assertEquals(17, commandNames.size)
-        assertEquals(5, requestNames.size)
+        assertEquals(18, commandNames.size)
+        assertEquals(6, requestNames.size)
+        // install_local_file needs a structured payload (url/sha256/headers) and
+        // local_file_info is a diagnostic request; neither is exposed to HA.
+        val notDiscovered = setOf("install_local_file", "local_file_info")
         assertTrue(
             components.keys.containsAll(
-                (commandNames - setOf("lock", "unlock")).map {
+                (commandNames - setOf("lock", "unlock") - notDiscovered).map {
                     when (it) {
                         "toast" -> "toast_message"
                         "notify" -> "notification_message"
@@ -168,8 +171,10 @@ class HomeAssistantCatalogTest {
             )
         )
         assertTrue(components.containsKey("kiosk_lock"))
-        assertTrue(components.keys.containsAll(requestNames))
-        requestNames.forEach { assertTrue(components.containsKey("${it}_result")) }
+        assertTrue(components.keys.containsAll(requestNames - notDiscovered))
+        (requestNames - notDiscovered).forEach {
+            assertTrue(components.containsKey("${it}_result"))
+        }
     }
 
     @Test

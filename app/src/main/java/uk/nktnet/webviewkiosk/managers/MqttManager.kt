@@ -1007,8 +1007,8 @@ object MqttManager {
     }
 
     /**
-     * Commands have no response topic or correlation data, so the reply always
-     * goes to the configured Response topic.
+     * Commands have no response topic or correlation data, so the reply always goes
+     * to the configured Response topic.
      */
     fun publishInstallLocalFileResponse(
         commandMessageId: String?,

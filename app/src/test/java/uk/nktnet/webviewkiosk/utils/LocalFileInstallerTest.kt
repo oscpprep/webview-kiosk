@@ -29,7 +29,9 @@ class LocalFileInstallerTest {
     fun sanitizesFilename() {
         val uri = URI("https://example.com/dir/page.html")
         assertEquals("page.html", LocalFileInstaller.sanitizeFilename(null, uri))
-        for (bad in listOf("../x", "a/b", "a\\b", " ", "a|b")) {
+        // A blank filename falls back to the last URL path segment.
+        assertEquals("page.html", LocalFileInstaller.sanitizeFilename(" ", uri))
+        for (bad in listOf("../x", "a/b", "a\\b", "..", "a|b")) {
             assertThrows(LocalFileInstaller.InstallException::class.java) {
                 LocalFileInstaller.sanitizeFilename(bad, uri)
             }
