@@ -1002,7 +1002,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Command.RETAIN_HANDLING,
-            MqttRetainHandlingOption.DO_NOT_SEND.name,
+            MqttRetainHandlingOption.SEND.name,
             fromString = MqttRetainHandlingOption::fromString,
         )
     var mqttSubscribeCommandRetainAsPublished by
