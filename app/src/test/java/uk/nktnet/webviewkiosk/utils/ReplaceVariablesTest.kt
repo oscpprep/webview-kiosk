@@ -39,6 +39,17 @@ class ReplaceVariablesTest {
     }
 
     @Test
+    fun replacesKioskDeviceTopicTemplates() {
+        assertEquals(
+            "wk/kios-client-01/command",
+            replaceVariables(
+                "wk/\${USERNAME}/command",
+                mapOf("USERNAME" to "kios-client-01"),
+            ),
+        )
+    }
+
+    @Test
     fun distinguishesAnEmptyReplacementFromAnUnknownVariable() {
         assertEquals(
             $$"/${unknown}",

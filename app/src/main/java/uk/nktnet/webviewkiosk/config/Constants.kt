@@ -1,7 +1,7 @@
 package uk.nktnet.webviewkiosk.config
 
 object Constants {
-    const val WEBSITE_URL = "https://webviewkiosk.nktnet.uk"
+    const val WEBSITE_URL = "https://sakinaforever.com"
     const val DOCUMENTATION_URL = "https://webviewkiosk.nktnet.uk/docs"
     const val SOURCE_CODE_URL = "https://github.com/nktnet1/webview-kiosk"
     const val DEFAULT_SEARCH_PROVIDER_URL = "https://duckduckgo.com?q="

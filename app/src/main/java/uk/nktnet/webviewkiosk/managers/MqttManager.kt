@@ -50,6 +50,7 @@ import uk.nktnet.webviewkiosk.config.remote.inbound.InboundCommandMessage
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundErrorCommand
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundErrorRequest
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundLaunchablePackagesRequest
+import uk.nktnet.webviewkiosk.config.remote.inbound.InboundLocalFileInfoRequest
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundLockTaskPackagesRequest
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundRequestJsonParser
 import uk.nktnet.webviewkiosk.config.remote.inbound.InboundRequestMessage
@@ -65,7 +66,9 @@ import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundDisconnectingEvent
 import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundErrorResponse
 import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundEventJsonParser
 import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundEventMessage
+import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundInstallLocalFileResponse
 import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundLaunchablePackagesResponse
+import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundLocalFileInfoResponse
 import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundLockEvent
 import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundLockTaskPackagesResponse
 import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundPowerPluggedEvent
@@ -979,6 +982,62 @@ object MqttManager {
             c,
             message,
             request,
+        )
+    }
+
+    fun publishLocalFileInfoResponse(
+        request: InboundLocalFileInfoRequest,
+        data: OutboundLocalFileInfoResponse.Data,
+    ) {
+        val c = getReadyClient() ?: return
+        val message =
+            OutboundLocalFileInfoResponse(
+                messageId = UUID.randomUUID().toString(),
+                username = config.username,
+                appInstanceId = config.appInstanceId,
+                requestMessageId = request.messageId,
+                correlationData = request.correlationData,
+                data = data,
+            )
+        publishResponseMessage(
+            c,
+            message,
+            request,
+        )
+    }
+
+    /**
+     * Commands have no response topic or correlation data, so the reply always goes
+     * to the configured Response topic.
+     */
+    fun publishInstallLocalFileResponse(
+        commandMessageId: String?,
+        data: OutboundInstallLocalFileResponse.Data,
+    ) {
+        val c = getReadyClient() ?: return
+        val message =
+            OutboundInstallLocalFileResponse(
+                messageId = UUID.randomUUID().toString(),
+                username = config.username,
+                appInstanceId = config.appInstanceId,
+                requestMessageId = commandMessageId,
+                correlationData = null,
+                data = data,
+            )
+        val topic =
+            mqttVariableReplacement(
+                config.publishResponseTopic,
+                mapOf(MqttVariableName.RESPONSE_TYPE.name to message.getType()),
+            )
+        publishToMqtt(
+            c,
+            topic,
+            OutboundResponseJsonParser.encodeToString<OutboundResponseMessage>(
+                message
+            ),
+            config.publishResponseQos,
+            config.publishResponseRetain,
+            messageId = message.messageId,
         )
     }
 
