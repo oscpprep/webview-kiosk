@@ -112,7 +112,10 @@ object LocalFileInstaller {
     ): Result {
         try {
             if (!actualSha.equals(expectedSha, ignoreCase = true)) {
-                throw InstallException("sha256 mismatch")
+                throw InstallException(
+                    "sha256 mismatch (expected ${expectedSha.take(12)}, " +
+                        "received ${actualSha.take(12)}; $bytes bytes)"
+                )
             }
             targetDir.mkdirs()
             val target = File(targetDir, FILE_PREFIX + filename)
@@ -149,18 +152,29 @@ object LocalFileInstaller {
             val conn = URL(uri.toString()).openConnection() as HttpURLConnection
             // Never follow redirects automatically (could downgrade to http).
             conn.instanceFollowRedirects = false
+            conn.useCaches = false
             conn.connectTimeout = CONNECT_TIMEOUT_MS
             conn.readTimeout = READ_TIMEOUT_MS
+            // Ask Cloudflare and other intermediaries for the original bytes.
+            // The expected SHA-256 is calculated over the uploaded file itself.
+            conn.setRequestProperty("Accept-Encoding", "identity")
             headers.forEach { (k, v) -> conn.setRequestProperty(k, v) }
             try {
                 val code = conn.responseCode
                 if (code !in 200..299) {
                     throw InstallException("http $code")
                 }
-                if (conn.contentLengthLong > MAX_BYTES) {
+                val declaredLength = conn.contentLengthLong
+                if (declaredLength > MAX_BYTES) {
                     throw InstallException("file too large")
                 }
                 val (sha, bytes) = conn.inputStream.use { streamToFile(it, temp) }
+                if (declaredLength >= 0L && declaredLength != bytes) {
+                    throw InstallException(
+                        "download size mismatch (server declared $declaredLength bytes, " +
+                            "received $bytes bytes)"
+                    )
+                }
                 return commit(temp, sha, expectedSha, bytes, targetDir, filename)
             } finally {
                 conn.disconnect()
