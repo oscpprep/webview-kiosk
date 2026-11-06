@@ -802,7 +802,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.USE_FOREGROUND_SERVICE,
-            false,
+            true,
         )
     var mqttHomeAssistantEnabled by
         booleanPref(
@@ -836,14 +836,14 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.SERVER_HOST,
-            "127.0.0.1",
+            "mqtt.sakinaforever.com",
         )
     var mqttServerPort by
         intPref(
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.SERVER_PORT,
-            1883,
+            443,
             min = 1,
             max = 65535,
         )
@@ -858,13 +858,14 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.USE_TLS,
-            false,
+            true,
         )
     var mqttUsername by
-        stringPrefOptional(
+        stringPref(
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.USERNAME,
+            "kios-client-01",
         )
     var mqttPassword by
         stringPrefOptional(
@@ -927,7 +928,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.USE_WEBSOCKET,
-            false,
+            true,
         )
     var mqttWebSocketServerPath by
         stringPref(
@@ -942,7 +943,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Event.TOPIC,
-            $$"wk/event/${$${MqttVariableName.EVENT_TYPE.name}}",
+            $"wk/${${MqttVariableName.USERNAME.name}}/event/${${MqttVariableName.EVENT_TYPE.name}}",
         )
     var mqttPublishEventQos by
         stringEnumPref(
@@ -964,7 +965,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Response.TOPIC,
-            $$"wk/response/${$${MqttVariableName.RESPONSE_TYPE.name}}",
+            $"wk/${${MqttVariableName.USERNAME.name}}/response/${${MqttVariableName.RESPONSE_TYPE.name}}",
         )
     var mqttPublishResponseQos by
         stringEnumPref(
@@ -986,7 +987,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Command.TOPIC,
-            "wk/command",
+            $"wk/${${MqttVariableName.USERNAME.name}}/command",
         )
     var mqttSubscribeCommandQos by
         stringEnumPref(
@@ -1016,7 +1017,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Settings.TOPIC,
-            "wk/settings",
+            $"wk/${${MqttVariableName.USERNAME.name}}/settings",
         )
     var mqttSubscribeSettingsQos by
         stringEnumPref(
@@ -1047,7 +1048,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Request.TOPIC,
-            "wk/request",
+            $"wk/${${MqttVariableName.USERNAME.name}}/request",
         )
     var mqttSubscribeRequestQos by
         stringEnumPref(
@@ -1078,7 +1079,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Will.TOPIC,
-            "wk/will",
+            $"wk/${${MqttVariableName.USERNAME.name}}/will",
         )
     var mqttWillQos by
         stringEnumPref(
