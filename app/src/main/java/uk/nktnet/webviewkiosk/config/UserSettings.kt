@@ -943,7 +943,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Event.TOPIC,
-            $"wk/${${MqttVariableName.USERNAME.name}}/event/${${MqttVariableName.EVENT_TYPE.name}}",
+            "wk/${MqttVariableName.USERNAME.name}/event/${MqttVariableName.EVENT_TYPE.name}",
         )
     var mqttPublishEventQos by
         stringEnumPref(
@@ -965,7 +965,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Response.TOPIC,
-            $"wk/${${MqttVariableName.USERNAME.name}}/response/${${MqttVariableName.RESPONSE_TYPE.name}}",
+            "wk/${MqttVariableName.USERNAME.name}/response/${MqttVariableName.RESPONSE_TYPE.name}",
         )
     var mqttPublishResponseQos by
         stringEnumPref(
@@ -987,7 +987,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Command.TOPIC,
-            $"wk/${${MqttVariableName.USERNAME.name}}/command",
+            "wk/${MqttVariableName.USERNAME.name}/command",
         )
     var mqttSubscribeCommandQos by
         stringEnumPref(
@@ -1017,7 +1017,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Settings.TOPIC,
-            $"wk/${${MqttVariableName.USERNAME.name}}/settings",
+            "wk/${MqttVariableName.USERNAME.name}/settings",
         )
     var mqttSubscribeSettingsQos by
         stringEnumPref(
@@ -1048,7 +1048,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Request.TOPIC,
-            $"wk/${${MqttVariableName.USERNAME.name}}/request",
+            "wk/${MqttVariableName.USERNAME.name}/request",
         )
     var mqttSubscribeRequestQos by
         stringEnumPref(
@@ -1079,7 +1079,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Will.TOPIC,
-            $"wk/${${MqttVariableName.USERNAME.name}}/will",
+            "wk/${MqttVariableName.USERNAME.name}/will",
         )
     var mqttWillQos by
         stringEnumPref(
