@@ -943,7 +943,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Event.TOPIC,
-            "wk/${MqttVariableName.USERNAME.name}/event/${MqttVariableName.EVENT_TYPE.name}",
+            "wk/\${USERNAME}/event/\${EVENT_TYPE}",
         )
     var mqttPublishEventQos by
         stringEnumPref(
@@ -965,7 +965,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Response.TOPIC,
-            "wk/${MqttVariableName.USERNAME.name}/response/${MqttVariableName.RESPONSE_TYPE.name}",
+            "wk/\${USERNAME}/response/\${RESPONSE_TYPE}",
         )
     var mqttPublishResponseQos by
         stringEnumPref(
@@ -987,7 +987,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Command.TOPIC,
-            "wk/${MqttVariableName.USERNAME.name}/command",
+            "wk/\${USERNAME}/command",
         )
     var mqttSubscribeCommandQos by
         stringEnumPref(
@@ -1017,7 +1017,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Settings.TOPIC,
-            "wk/${MqttVariableName.USERNAME.name}/settings",
+            "wk/\${USERNAME}/settings",
         )
     var mqttSubscribeSettingsQos by
         stringEnumPref(
@@ -1048,7 +1048,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Request.TOPIC,
-            "wk/${MqttVariableName.USERNAME.name}/request",
+            "wk/\${USERNAME}/request",
         )
     var mqttSubscribeRequestQos by
         stringEnumPref(
@@ -1079,7 +1079,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Will.TOPIC,
-            "wk/${MqttVariableName.USERNAME.name}/will",
+            "wk/\${USERNAME}/will",
         )
     var mqttWillQos by
         stringEnumPref(
