@@ -972,7 +972,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Response.QOS,
-            MqttQosOption.AT_MOST_ONCE.name,
+            MqttQosOption.AT_LEAST_ONCE.name,
             fromString = MqttQosOption::fromString,
         )
     var mqttPublishResponseRetain by
@@ -994,7 +994,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Command.QOS,
-            MqttQosOption.AT_MOST_ONCE.name,
+            MqttQosOption.AT_LEAST_ONCE.name,
             fromString = MqttQosOption::fromString,
         )
     var mqttSubscribeCommandRetainHandling by
