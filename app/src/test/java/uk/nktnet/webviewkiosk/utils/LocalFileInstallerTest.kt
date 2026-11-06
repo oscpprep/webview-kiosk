@@ -46,9 +46,12 @@ class LocalFileInstallerTest {
         val temp = File(dir, "t.part")
         val (actual, bytes) =
             LocalFileInstaller.streamToFile("new".byteInputStream(), temp)
-        assertThrows(LocalFileInstaller.InstallException::class.java) {
+        val mismatch = assertThrows(LocalFileInstaller.InstallException::class.java) {
             LocalFileInstaller.commit(temp, actual, sha, bytes, dir, "p.html")
         }
+        assertTrue(mismatch.message.orEmpty().contains("expected"))
+        assertTrue(mismatch.message.orEmpty().contains("received"))
+        assertTrue(mismatch.message.orEmpty().contains("$bytes bytes"))
         assertEquals("old", existing.readText())
         assertFalse(temp.exists())
 
