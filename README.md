@@ -10,7 +10,9 @@
 
 **[Download the latest Debug APK](https://github.com/oscpprep/webview-kiosk/releases/download/debug-latest/app-debug.apk)**
 
-The permanent download URL above is updated automatically after tests pass and a new debug APK is successfully built from `main`. No production signing keystore is required. 
+The permanent download URL above is updated automatically after tests pass and a new debug APK is successfully built from `main`. No production signing keystore is required.
+
+<div align="center">
 
 [<img src="./docs/src/assets/badges/github.svg" alt="Get it on GitHub" width="260px" />](https://github.com/nktnet1/webview-kiosk/releases)
 [<img src="./docs/src/assets/badges/obtainium.svg" alt="Get it on Obtainium" width="260px" />](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/nktnet1/webview-kiosk)
