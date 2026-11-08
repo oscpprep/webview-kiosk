@@ -1,0 +1,83 @@
+name: Debug APK Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: debug-apk-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Run required tests
+    uses: ./.github/workflows/tests.yaml
+
+  build:
+    name: Build and publish latest Debug APK
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Configure Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --build-cache --no-daemon --stacktrace
+
+      - name: Update stable debug-latest tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = "debug-latest";
+            const ref = `tags/${tag}`;
+            const sha = context.sha;
+            try {
+              await github.rest.git.updateRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref,
+                sha,
+                force: true
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/${ref}`,
+                sha
+              });
+            }
+
+      - name: Publish permanent latest APK download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: debug-latest
+          target_commitish: ${{ github.sha }}
+          name: Latest SakinaForever Debug APK
+          body: |
+            Automatically built from the latest successful commit on `main`.
+
+            This is the unsigned/debug APK for SakinaForever kiosk tablets. No production keystore is required.
+          files: app/build/outputs/apk/debug/app-debug.apk
+          fail_on_unmatched_files: true
+          make_latest: true
+          prerelease: false
