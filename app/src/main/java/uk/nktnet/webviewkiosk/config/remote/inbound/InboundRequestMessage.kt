@@ -96,6 +96,18 @@ data class InboundLockTaskPackagesRequest(
 }
 
 @Serializable
+@SerialName("local_file_info")
+data class InboundLocalFileInfoRequest(
+    override val messageId: String? = null,
+    override val targetInstances: Set<String>? = null,
+    override val targetUsernames: Set<String>? = null,
+    override var responseTopic: String? = null,
+    override var correlationData: String? = null,
+) : InboundRequestMessage {
+    override fun toString() = "local_file_info"
+}
+
+@Serializable
 @SerialName("error")
 data class InboundErrorRequest(
     override val messageId: String? = null,

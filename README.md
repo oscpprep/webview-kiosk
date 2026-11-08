@@ -52,6 +52,7 @@ and standalone Kiosk solution.
 1. MQTT (Message Queuing Telemetry Transport)
    - Monitor events, update settings, execute commands and build custom automations
    - Requires an MQTT broker (e.g. Mosquitto, EMQX, HiveMQ, or their HomeAssistant integrations)
+   - Supports installing verified local web files remotely via `install_local_file` (see [docs/install-local-file.md](docs/install-local-file.md))
 
 2. UnifiedPush
    - Send commands and update settings via a decentralised push notification system

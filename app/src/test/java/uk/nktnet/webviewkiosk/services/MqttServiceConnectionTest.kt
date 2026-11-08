@@ -801,7 +801,7 @@ class MqttServiceConnectionTest {
 
         assertTrue(awaitPublication(first, ha.availabilityTopic, "offline").retain)
         assertTrue(awaitPublication(second, ha.configTopic, "").retain)
-        assertEquals("wk/will", second.will?.topic)
+        assertEquals("wk/${settings.mqttUsername}/will", second.will?.topic)
         assertFalse(second.subscriptions.contains(ha.birthTopic))
     }
 

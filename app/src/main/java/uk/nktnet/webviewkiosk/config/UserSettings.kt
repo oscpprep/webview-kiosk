@@ -11,7 +11,6 @@ import org.json.JSONObject
 import uk.nktnet.webviewkiosk.R
 import uk.nktnet.webviewkiosk.config.mqtt.MqttQosOption
 import uk.nktnet.webviewkiosk.config.mqtt.MqttRetainHandlingOption
-import uk.nktnet.webviewkiosk.config.mqtt.MqttVariableName
 import uk.nktnet.webviewkiosk.config.option.AddressBarModeOption
 import uk.nktnet.webviewkiosk.config.option.AddressBarPositionOption
 import uk.nktnet.webviewkiosk.config.option.AddressBarSizeOption
@@ -802,7 +801,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.USE_FOREGROUND_SERVICE,
-            false,
+            true,
         )
     var mqttHomeAssistantEnabled by
         booleanPref(
@@ -836,14 +835,14 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.SERVER_HOST,
-            "127.0.0.1",
+            "mqtt.sakinaforever.com",
         )
     var mqttServerPort by
         intPref(
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.SERVER_PORT,
-            1883,
+            443,
             min = 1,
             max = 65535,
         )
@@ -858,13 +857,14 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.USE_TLS,
-            false,
+            true,
         )
     var mqttUsername by
-        stringPrefOptional(
+        stringPref(
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.USERNAME,
+            "kios-client-01",
         )
     var mqttPassword by
         stringPrefOptional(
@@ -927,7 +927,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Connection.USE_WEBSOCKET,
-            false,
+            true,
         )
     var mqttWebSocketServerPath by
         stringPref(
@@ -942,7 +942,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Event.TOPIC,
-            $$"wk/event/${$${MqttVariableName.EVENT_TYPE.name}}",
+            "wk/\${USERNAME}/event/\${EVENT_TYPE}",
         )
     var mqttPublishEventQos by
         stringEnumPref(
@@ -964,14 +964,14 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Response.TOPIC,
-            $$"wk/response/${$${MqttVariableName.RESPONSE_TYPE.name}}",
+            "wk/\${USERNAME}/response/\${RESPONSE_TYPE}",
         )
     var mqttPublishResponseQos by
         stringEnumPref(
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Publish.Response.QOS,
-            MqttQosOption.AT_MOST_ONCE.name,
+            MqttQosOption.AT_LEAST_ONCE.name,
             fromString = MqttQosOption::fromString,
         )
     var mqttPublishResponseRetain by
@@ -986,14 +986,14 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Command.TOPIC,
-            "wk/command",
+            "wk/\${USERNAME}/command",
         )
     var mqttSubscribeCommandQos by
         stringEnumPref(
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Command.QOS,
-            MqttQosOption.AT_MOST_ONCE.name,
+            MqttQosOption.AT_LEAST_ONCE.name,
             fromString = MqttQosOption::fromString,
         )
     var mqttSubscribeCommandRetainHandling by
@@ -1001,7 +1001,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Command.RETAIN_HANDLING,
-            MqttRetainHandlingOption.DO_NOT_SEND.name,
+            MqttRetainHandlingOption.SEND.name,
             fromString = MqttRetainHandlingOption::fromString,
         )
     var mqttSubscribeCommandRetainAsPublished by
@@ -1016,7 +1016,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Settings.TOPIC,
-            "wk/settings",
+            "wk/\${USERNAME}/settings",
         )
     var mqttSubscribeSettingsQos by
         stringEnumPref(
@@ -1047,7 +1047,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Topics.Subscribe.Request.TOPIC,
-            "wk/request",
+            "wk/\${USERNAME}/request",
         )
     var mqttSubscribeRequestQos by
         stringEnumPref(
@@ -1078,7 +1078,7 @@ class UserSettings(val context: Context) {
             getRestrictions,
             prefs,
             UserSettingsKeys.Mqtt.Will.TOPIC,
-            "wk/will",
+            "wk/\${USERNAME}/will",
         )
     var mqttWillQos by
         stringEnumPref(
