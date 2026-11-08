@@ -10,7 +10,7 @@ Android kiosk client for SakinaForever passenger tablets. The app opens the Saki
 
 **[Download the latest SakinaForever APK](https://github.com/oscpprep/webview-kiosk/releases/download/debug-latest/app-debug.apk)**
 
-This permanent link points to the APK attached to the `debug-latest` GitHub Release. The release is refreshed automatically from `main) after the required tests and APK build succeed.
+This permanent link points to the APK attached to the `debug-latest` GitHub Release. The release is refreshed automatically from `main` after the required tests and APK build succeed.
 
 This is a debug build. It does not require a production signing keystore.
 
