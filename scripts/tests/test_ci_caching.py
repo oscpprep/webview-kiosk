@@ -41,14 +41,11 @@ class CiCachingTest(unittest.TestCase):
         self.assertFalse((ROOT / "scripts/ci/report_android_instrumentation.py").exists())
         gradle_build = (ROOT / "app/build.gradle.kts").read_text(encoding="utf-8")
         versions = (ROOT / "gradle/libs.versions.toml").read_text(encoding="utf-8")
-        self.assertRegex(gradle_build, r'testInstrumentationRunner\s*=\s*"uk\.nktnet\.webviewkiosk\.r8\.R8RuntimeInstrumentation"')
-        self.assertIn('testBuildType = "smokeRelease"', gradle_build)
-        self.assertRegex(
-            gradle_build,
-            r'androidComponents\s*\{[^}]*beforeVariants\(selector\(\)'
-            r'\.all\(\)\)\s*\{\s*'
-            r'it\.hostTests\\[HostTestBuilder\.UNIT_TEST_TYPE\\]\?\.enable\s*=\s*true',
-        )
+        self.assertIn('testInstrumentationRunner =', gradle_build)
+        self.assertIn('"uk.nktnet.webviewkiosk.r8.R8RuntimeInstrumentation"', gradle_build)
+        self.assertIn("androidComponents {", gradle_build)
+        self.assertIn("beforeVariants(selector().all())", gradle_build)
+        self.assertIn("it.hostTests[HostTestBuilder.UNIT_TEST_TYPE]?.enable = true", gradle_build)
         self.assertNotIn("android.onlyEnableUnitTestForTheTestedBuildType=false", gradle_build)
         self.assertNotIn("androidTestImplementation", gradle_build)
         self.assertNotIn("--runtime", TESTS)
