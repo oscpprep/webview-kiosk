@@ -1,4 +1,4 @@
-"""Static regression checks for test workflow scope and caching.
+"""Static regression checks for the current, minimal CI workflow setup.
 
 Uses only the standard library so these checks run before Gradle or pnpm.
 """
@@ -9,8 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TESTS = (ROOT / ".github/workflows/tests.yaml").read_text(encoding="utf-8")
-DOCS = (ROOT / ".github/workflows/docs.yaml").read_text(encoding="utf-8")
-RELEASE = (ROOT / ".github/workflows/release.yaml").read_text(encoding="utf-8")
+DEBUG_RELEASE = (ROOT / ".github/workflows/debug-release.yml").read_text(encoding="utf-8")
 
 
 class CiCachingTest(unittest.TestCase):
@@ -28,13 +27,10 @@ class CiCachingTest(unittest.TestCase):
 
     def test_no_avd_or_installed_apk_automated_jobs_remain(self):
         self.assertNotIn("  emulator:", TESTS)
-        self.assertNotIn("  smoke:", RELEASE)
         self.assertNotIn("reactivecircus/android-emulator-runner", TESTS)
-        self.assertNotIn("reactivecircus/android-emulator-runner", RELEASE)
         self.assertNotIn("connectedDebugAndroidTest", TESTS)
         self.assertNotIn("avd-cache", TESTS)
-        self.assertIn("needs: [verify, build]", RELEASE)
-        self.assertIn("  android:\n", TESTS)
+        self.assertIn("  android:\\n", TESTS)
 
     def test_old_instrumentation_suite_stays_retired_and_r8_probes_are_opt_in(self):
         self.assertTrue((ROOT / "app/src/androidTest/java/uk/nktnet/webviewkiosk/r8/R8RuntimeInstrumentation.java").is_file())
@@ -45,74 +41,29 @@ class CiCachingTest(unittest.TestCase):
         self.assertFalse((ROOT / "scripts/ci/report_android_instrumentation.py").exists())
         gradle_build = (ROOT / "app/build.gradle.kts").read_text(encoding="utf-8")
         versions = (ROOT / "gradle/libs.versions.toml").read_text(encoding="utf-8")
-        self.assertRegex(gradle_build, r'testInstrumentationRunner\s*=\s*"uk\.nktnet\.webviewkiosk\.r8\.R8RuntimeInstrumentation"')
+        self.assertRegex(gradle_build, r'testInstrumentationRunner\\s*=\\s*"uk\\.nktnet\\.webviewkiosk\\.r8\\.R8RuntimeInstrumentation"')
         self.assertIn('testBuildType = "smokeRelease"', gradle_build)
-        # AGP 9 defaults unit tests to just testBuildType. Keep debug JVM
-        # tests in CI and Compose Preview resources for other build types.
         self.assertRegex(
             gradle_build,
-            r'androidComponents\s*\{[^}]*beforeVariants\(selector\(\)'
-            r'\.all\(\)\)\s*\{\s*'
-            r'it\.hostTests\[HostTestBuilder\.UNIT_TEST_TYPE\]\?\.enable\s*=\s*true',
+            r'androidComponents\\s*\\{[^}]*beforeVariants\\(selector\\(\\)'
+            r'\\.all\\(\\)\\)\\s*\\{\\s*'
+            r'it\\.hostTests\\[HostTestBuilder\\.UNIT_TEST_TYPE\\]\\?\\.enable\\s*=\\s*true',
         )
         self.assertNotIn("android.onlyEnableUnitTestForTheTestedBuildType=false", gradle_build)
         self.assertNotIn("androidTestImplementation", gradle_build)
         self.assertNotIn("--runtime", TESTS)
-        self.assertNotIn("--runtime", RELEASE)
         self.assertNotIn("connectedSmokeReleaseAndroidTest", TESTS)
         self.assertNotIn("androidx-test-runner", versions)
         self.assertNotIn("androidx-test-ext-junit", versions)
         self.assertNotIn("androidx-test-core", versions)
 
-    def test_android_release_no_longer_waits_for_docs(self):
-        self.assertIn("uses: ./.github/workflows/tests.yaml", RELEASE)
-        self.assertNotIn("  docs:\n", TESTS)
-        self.assertNotIn("  docs-browser:\n", TESTS)
-        self.assertNotIn("cache: pnpm", TESTS)
-        self.assertNotIn("playwright", TESTS)
-
-    def test_docs_validation_installs_and_caches_once(self):
-        self.assertEqual(1, DOCS.count("uses: pnpm/action-setup@v6"))
-        self.assertEqual(1, DOCS.count("uses: actions/setup-node@v6"))
-        self.assertEqual(1, DOCS.count("cache: pnpm"))
-        self.assertIn("cache-dependency-path: docs/pnpm-lock.yaml", DOCS)
-        self.assertLess(
-            DOCS.index("uses: pnpm/action-setup@v6"),
-            DOCS.index("uses: actions/setup-node@v6"),
-        )
-        for command in ("pnpm check", "pnpm typecheck", "pnpm test", "pnpm build"):
-            self.assertEqual(1, DOCS.count(f"run: {command}\n"))
-
-    def test_docs_validation_runs_on_relevant_prs_and_main_pushes(self):
-        self.assertIn("  push:\n    branches:\n      - main", DOCS)
-        self.assertIn("  pull_request:\n    paths:\n", DOCS)
-        self.assertIn("  workflow_dispatch:\n", DOCS)
-        self.assertEqual(2, DOCS.count("      - 'docs/**'"))
-        self.assertIn("if: github.event_name != 'pull_request'", DOCS)
-        self.assertIn(
-            "PUBLIC_DOCS_BASE_PATH: ${{ steps.setup_pages.outputs.base_path || '/' }}", DOCS
-        )
-        self.assertIn("    needs: build", DOCS)
-
-    def test_browser_checks_only_when_relevant_or_manual(self):
-        self.assertIn("uses: dorny/paths-filter@v3", DOCS)
-        self.assertIn("pull-requests: read", DOCS)
-        for path in (
-            "docs/src/**",
-            "docs/tests/e2e/**",
-            "docs/vite.config.ts",
-            "docs/config/playwright.config.ts",
-            "docs/package.json",
-            "docs/pnpm-lock.yaml",
-        ):
-            self.assertIn(f"- '{path}'", DOCS)
-        browser_condition = (
-            "if: github.event_name == 'workflow_dispatch' "
-            "|| steps.browser_changes.outputs.browser == 'true'"
-        )
-        self.assertEqual(2, DOCS.count(browser_condition))
-        self.assertIn("pnpm exec playwright install --with-deps chromium", DOCS)
-        self.assertIn("run: pnpm test:e2e", DOCS)
+    def test_debug_release_workflow_gates_publication_on_tests(self):
+        self.assertIn("uses: ./.github/workflows/tests.yaml", DEBUG_RELEASE)
+        self.assertIn("needs: verify", DEBUG_RELEASE)
+        self.assertIn("run: ./gradlew :app:assembleDebug", DEBUG_RELEASE)
+        self.assertIn("app/build/outputs/apk/debug/app-debug.apk", DEBUG_RELEASE)
+        self.assertNotIn("docs.yaml", DEBUG_RELEASE)
+        self.assertNotIn("release.yaml", DEBUG_RELEASE)
 
 
 if __name__ == "__main__":
