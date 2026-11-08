@@ -60,6 +60,25 @@ and standalone Kiosk solution.
    - For fully-managed (company-owned) devices, settings can be configured via an MDM/EMM provider
    - Advanced users with a device policy controller (e.g. Test DPC or OwnDroid) can also enforce configurations locally
 
+## Optional Server Setup Example
+
+The Android kiosk client can be used independently. A separate server is optional and is only needed if you want to use the SakinaForever remote-management setup (including the MQTT broker, device-management API, and web dashboard).
+
+A Docker Compose server example is provided separately as an optional setup reference. It is not required to build, install, or use the Android app. If you choose to deploy the server, follow the server example's README and environment setup instructions:
+
+1. Copy `.env.example` to `.env` before starting the stack:
+   ```bash
+   cp .env.example .env
+   ```
+2. Open `.env.example` and copy/save the generated passwords securely before proceeding. Keep the values consistent with the corresponding entries in `.env`.
+3. Keep `.env` private. Do not commit it, publish it, or share its passwords.
+4. Start the services from the directory containing `docker-compose.yml`:
+   ```bash
+   docker compose up -d --build
+   ```
+
+The server is an independent project; its containers, configuration, and persistent data are separate from the Android app.
+
 ## Permissions
 
 - <b>INTERNET</b>: for general web browsing
