@@ -13,6 +13,7 @@ class ReleaseArtifactsTest(unittest.TestCase):
 
     def test_debug_apk_is_published_with_stock_filename(self):
         self.assertIn("name: Publish permanent latest APK download", RELEASE)
+        self.assertIn("uses: softprops/action-gh-release@v2", RELEASE)
         self.assertIn("tag_name: debug-latest", RELEASE)
         self.assertIn("files: app/build/outputs/apk/debug/app-debug.apk", RELEASE)
         self.assertIn("fail_on_unmatched_files: true", RELEASE)
@@ -22,10 +23,10 @@ class ReleaseArtifactsTest(unittest.TestCase):
         self.assertIn("needs: verify", RELEASE)
         self.assertIn("contents: write", RELEASE)
 
-    def test_stable_tag_is_moved_to_the_current_commit(self):
-        self.assertIn('const tag = "debug-latest";', RELEASE)
-        self.assertIn("force: true", RELEASE)
-        self.assertIn("github.rest.git.createRef", RELEASE)
+    def test_release_action_creates_or_updates_stable_tag_at_current_commit(self):
+        self.assertIn("tag_name: debug-latest", RELEASE)
+        self.assertIn("target_commitish: ${{ github.sha }}", RELEASE)
+        self.assertIn("uses: softprops/action-gh-release@v2", RELEASE)
 
 
 if __name__ == "__main__":
