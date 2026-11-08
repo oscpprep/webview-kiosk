@@ -1,41 +1,16 @@
 # Webview Kiosk — SakinaForever Edition
 
-[![Latest Release](https://img.shields.io/github/v/release/oscpprep/webview-kiosk?display_name=tag)](https://github.com/oscpprep/webview-kiosk/releases/latest)
-[![Build Debug APK](https://github.com/oscpprep/webview-kiosk/actions/workflows/build-debug-apk.yml/badge.svg?branch=main)](https://github.com/oscpprep/webview-kiosk/actions/workflows/build-debug-apk.yml)
+[![Latest Debug APK](https://img.shields.io/badge/download-latest%20debug%20APK-blue)](https://github.com/oscpprep/webview-kiosk/releases/download/debug-latest/app-debug.apk)
+[![Debug APK Release](https://github.com/oscpprep/webview-kiosk/actions/workflows/debug-release.yml/badge.svg?branch=main)](https://github.com/oscpprep/webview-kiosk/actions/workflows/debug-release.yml)
 [![Tests](https://github.com/oscpprep/webview-kiosk/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/oscpprep/webview-kiosk/actions/workflows/tests.yaml)
 
 **SakinaForever's managed Android kiosk client**, built on the open-source Webview Kiosk project.
 
 ## Download
 
-**[Download the latest APK](https://github.com/oscpprep/webview-kiosk/releases/latest)**
+**[Download the latest Debug APK](https://github.com/oscpprep/webview-kiosk/releases/download/debug-latest/app-debug.apk)**
 
-The link above is permanent. It always redirects to the newest published GitHub release. Download the APK asset attached to that release and install it on your Android tablet.
-
-## SakinaForever setup
-
-- Default home page: `https://sakinaforever.com`
-- Secure MQTT WebSockets: `mqtt.sakinaforever.com:443` (`/mqtt`, TLS)
-- Initial device username: `kios-client-01`
-- Device passwords are unique and must be provisioned per tablet; no shared broker password is embedded in this repository.
-- Supports retained MQTT commands and verified offline local-file delivery through `install_local_file`.
-
-See [the local-file delivery guide](docs/install-local-file.md) for the MQTT command format and SHA-256 requirements.
-
-## Development
-
-This repository retains the upstream Webview Kiosk application and its build system. Use the Android Tests and Build Debug APK workflows for validation. Versioned production releases are created from tags beginning with `v` using the **Release APK** workflow.
-
-## Upstream project
-
-This edition is based on [nktnet1/webview-kiosk](https://github.com/nktnet1/webview-kiosk). Original project documentation, features, screenshots, installation notes, and license information are retained below.
-
----
-
-
-> Docs: https://webviewkiosk.nktnet.uk
-
-<div align="center">
+The permanent download URL above is updated automatically after tests pass and a new debug APK is successfully built from `main`. No production signing keystore is required. 
 
 [<img src="./docs/src/assets/badges/github.svg" alt="Get it on GitHub" width="260px" />](https://github.com/nktnet1/webview-kiosk/releases)
 [<img src="./docs/src/assets/badges/obtainium.svg" alt="Get it on Obtainium" width="260px" />](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/nktnet1/webview-kiosk)
