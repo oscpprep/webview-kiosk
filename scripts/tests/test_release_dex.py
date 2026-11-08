@@ -286,18 +286,17 @@ class ReleaseDexTest(unittest.TestCase):
         self.assertIn('signingConfig = signingConfigs.getByName("debug")', build_type)
         self.assertIn("isDebuggable = false", build_type)
 
-    def test_release_ci_checks_the_actual_apk_before_upload(self):
-        release = (Path(__file__).resolve().parents[2] / ".github/workflows/release.yaml").read_text()
-        build = release.index("run: sh gradlew :app:assembleRelease :app:assembleDebug")
-        check = release.index("python3 scripts/r8/r8_audit.py app/build/outputs/apk/release/app-release.apk")
-        publish = release.index("name: Store release APK for publication")
-        self.assertLess(build, check)
-        self.assertLess(check, publish)
-        self.assertNotIn("assembleSmokeRelease", release)
-        self.assertNotIn("emulator-runner", release)
-        self.assertIn("name: Upload R8 diagnostics for analysis", release)
-        self.assertIn("path: build/reports/r8/release.json", release)
-        self.assertIn("--require-mapping --fail-on-warnings --json build/reports/r8/release.json", release)
+    def test_debug_release_waits_for_tests_before_building_and_publishing(self):
+        root = Path(__file__).resolve().parents[2]
+        release = (root / ".github/workflows/debug-release.yml").read_text()
+        tests = (root / ".github/workflows/tests.yaml").read_text()
+        self.assertIn("uses: ./.github/workflows/tests.yaml", release)
+        self.assertIn("needs: verify", release)
+        self.assertIn("run: ./gradlew :app:assembleDebug", release)
+        self.assertIn("name: Publish permanent latest APK download", release)
+        self.assertIn("files: app/build/outputs/apk/debug/app-debug.apk", release)
+        self.assertIn("run: python3 scripts/r8/r8_audit.py --require-mapping --fail-on-warnings --json build/reports/r8/smokeRelease.json", tests)
+        self.assertNotIn("release.yaml", release)
 
 
 if __name__ == "__main__":
