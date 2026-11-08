@@ -1,47 +1,31 @@
-"""Check the release workflow publishes its signed release and stock debug APKs."""
+"""Check the current workflow publishes a stable debug APK release asset."""
 
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-RELEASE = (ROOT / ".github/workflows/release.yaml").read_text(encoding="utf-8")
+RELEASE = (ROOT / ".github/workflows/debug-release.yml").read_text(encoding="utf-8")
 
 
 class ReleaseArtifactsTest(unittest.TestCase):
-    def test_builds_both_variants_once(self):
-        self.assertIn(
-            "run: sh gradlew :app:assembleRelease :app:assembleDebug --stacktrace",
-            RELEASE,
-        )
+    def test_builds_debug_variant(self):
+        self.assertIn("run: ./gradlew :app:assembleDebug", RELEASE)
 
-    def test_debug_apk_is_uploaded_and_downloaded_without_renaming(self):
-        self.assertIn("name: Store debug APK for publication", RELEASE)
-        self.assertIn("name: debug-apk", RELEASE)
-        self.assertIn("path: app/build/outputs/apk/debug/app-debug.apk", RELEASE)
-        self.assertIn("name: Download built debug APK", RELEASE)
-        self.assertIn("path: app/build/outputs/apk/debug/", RELEASE)
-        self.assertIn("if-no-files-found: error", RELEASE)
-        self.assertNotIn('mv app/build/outputs/apk/debug', RELEASE)
+    def test_debug_apk_is_published_with_stock_filename(self):
+        self.assertIn("name: Publish permanent latest APK download", RELEASE)
+        self.assertIn("tag_name: debug-latest", RELEASE)
+        self.assertIn("files: app/build/outputs/apk/debug/app-debug.apk", RELEASE)
+        self.assertIn("fail_on_unmatched_files: true", RELEASE)
 
-    def test_release_apk_keeps_stock_filename_and_versioned_alias(self):
-        self.assertIn("name: Store release APK for publication", RELEASE)
-        self.assertIn("name: release-apk", RELEASE)
-        self.assertIn("path: app/build/outputs/apk/release/", RELEASE)
-        self.assertIn("name: Download built release APK", RELEASE)
-        self.assertIn(
-            'cp app/build/outputs/apk/release/app-release.apk \\\n'
-            '            "app/build/outputs/apk/release/WebviewKiosk_v$VERSION_NAME.apk"',
-            RELEASE,
-        )
-        self.assertNotIn("mv app/build/outputs/apk/release/", RELEASE)
+    def test_publication_waits_for_tests_and_uses_writable_contents_permission(self):
+        self.assertIn("uses: ./.github/workflows/tests.yaml", RELEASE)
+        self.assertIn("needs: verify", RELEASE)
+        self.assertIn("contents: write", RELEASE)
 
-    def test_draft_release_contains_both_apks(self):
-        self.assertIn("name: Create Draft GitHub Release", RELEASE)
-        self.assertIn("app/build/outputs/apk/release/*.apk", RELEASE)
-        self.assertIn("app/build/outputs/apk/debug/app-debug.apk", RELEASE)
-        self.assertIn("artifactErrorsFailBuild: true", RELEASE)
-        self.assertIn("needs: [verify, build]", RELEASE)
-        self.assertIn("if: startsWith(github.ref, 'refs/tags/v')", RELEASE)
+    def test_stable_tag_is_moved_to_the_current_commit(self):
+        self.assertIn('const tag = "debug-latest";', RELEASE)
+        self.assertIn("force: true", RELEASE)
+        self.assertIn("github.rest.git.createRef", RELEASE)
 
 
 if __name__ == "__main__":
