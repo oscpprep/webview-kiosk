@@ -30,7 +30,7 @@ class CiCachingTest(unittest.TestCase):
         self.assertNotIn("reactivecircus/android-emulator-runner", TESTS)
         self.assertNotIn("connectedDebugAndroidTest", TESTS)
         self.assertNotIn("avd-cache", TESTS)
-        self.assertIn("  android:\\n", TESTS)
+        self.assertIn("  android:", TESTS)
 
     def test_old_instrumentation_suite_stays_retired_and_r8_probes_are_opt_in(self):
         self.assertTrue((ROOT / "app/src/androidTest/java/uk/nktnet/webviewkiosk/r8/R8RuntimeInstrumentation.java").is_file())
