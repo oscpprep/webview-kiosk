@@ -309,14 +309,14 @@ fun ImportSettingsDialog(
                                     }
 
                                 if (success) {
-                                    // Importing a new MQTT username/password must replace
-                                    // the live HiveMQ client. Merely starting the foreground
-                                    // service leaves an already-connected/reconnecting client
-                                    // using its old in-memory credentials.
+                                    // Importing new MQTT credentials must replace the
+                                    // live client instead of retaining stale in-memory auth.
                                     if (userSettings.mqttEnabled) {
                                         MqttManager.restart(
-                                            context,
-                                            OutboundDisconnectingEvent.DisconnectCause.USER_INITIATED_RESTART,
+                                            context = context.applicationContext,
+                                            cause =
+                                                OutboundDisconnectingEvent.DisconnectCause
+                                                    .USER_INITIATED_RESTART,
                                             onError = { error ->
                                                 if (error != null) {
                                                     Log.e(
@@ -334,6 +334,21 @@ fun ImportSettingsDialog(
                                             },
                                         )
                                     } else {
+                                        MqttManager.disconnect(
+                                            OutboundDisconnectingEvent.DisconnectCause
+                                                .USER_INITIATED_SETTINGS_DISABLED,
+                                        )
+                                    }
+                                    updateDeviceSettings(context)
+                                    ToastManager.show(
+                                        context,
+                                        context.getString(
+                                            R.string
+                                                .ui_imported_settings_successfully
+                                        ),
+                                    )
+                                    onDismiss()
+                                } else {
                                         MqttManager.disconnect(
                                             OutboundDisconnectingEvent.DisconnectCause.USER_INITIATED_SETTINGS_DISABLED,
                                         )
