@@ -340,7 +340,7 @@ fun ImportSettingsDialog(
                                         MqttManager.disconnect(
                                             OutboundDisconnectingEvent
                                                 .DisconnectCause
-                                                .USER_INITIATED_SETTINGS_DISABLED,
+                                                .USER_INITIATED_SETTINGS_DISABLED
                                         )
                                     }
                                     updateDeviceSettings(context)
