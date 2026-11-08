@@ -349,21 +349,6 @@ fun ImportSettingsDialog(
                                     )
                                     onDismiss()
                                 } else {
-                                        MqttManager.disconnect(
-                                            OutboundDisconnectingEvent.DisconnectCause.USER_INITIATED_SETTINGS_DISABLED,
-                                        )
-                                    }
-                                    updateDeviceSettings(context)
-                                    ToastManager.show(
-                                        context,
-                                        context.getString(
-                                            R.string
-                                                .ui_imported_settings_successfully
-                                        ),
-                                    )
-                                    onDismiss()
-                                } else {
-                                    importError = true
                                     ToastManager.show(
                                         context,
                                         if (selectedTab == ImportTab.Base64) {
