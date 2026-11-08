@@ -349,6 +349,7 @@ fun ImportSettingsDialog(
                                     )
                                     onDismiss()
                                 } else {
+                                    importError = true
                                     ToastManager.show(
                                         context,
                                         if (selectedTab == ImportTab.Base64) {
