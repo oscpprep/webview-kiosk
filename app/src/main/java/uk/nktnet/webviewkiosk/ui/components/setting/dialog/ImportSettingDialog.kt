@@ -45,7 +45,9 @@ import kotlinx.coroutines.withContext
 import uk.nktnet.webviewkiosk.R
 import uk.nktnet.webviewkiosk.config.Constants
 import uk.nktnet.webviewkiosk.config.UserSettings
+import uk.nktnet.webviewkiosk.config.remote.outbound.OutboundDisconnectingEvent
 import uk.nktnet.webviewkiosk.managers.AuthenticationManager
+import uk.nktnet.webviewkiosk.managers.MqttManager
 import uk.nktnet.webviewkiosk.managers.ToastManager
 import uk.nktnet.webviewkiosk.ui.components.common.SystemSafeDialog as Dialog
 import uk.nktnet.webviewkiosk.utils.updateDeviceSettings
@@ -307,6 +309,35 @@ fun ImportSettingsDialog(
                                     }
 
                                 if (success) {
+                                    // Importing a new MQTT username/password must replace
+                                    // the live HiveMQ client. Merely starting the foreground
+                                    // service leaves an already-connected/reconnecting client
+                                    // using its old in-memory credentials.
+                                    if (userSettings.mqttEnabled) {
+                                        MqttManager.restart(
+                                            context,
+                                            OutboundDisconnectingEvent.DisconnectCause.USER_INITIATED_RESTART,
+                                            onError = { error ->
+                                                if (error != null) {
+                                                    Log.e(
+                                                        Constants.APP_SCHEME,
+                                                        "MQTT reconnect after settings import failed: $error",
+                                                    )
+                                                    ToastManager.show(
+                                                        context,
+                                                        context.getString(
+                                                            R.string.ui_error_value,
+                                                            error,
+                                                        ),
+                                                    )
+                                                }
+                                            },
+                                        )
+                                    } else {
+                                        MqttManager.disconnect(
+                                            OutboundDisconnectingEvent.DisconnectCause.USER_INITIATED_SETTINGS_DISABLED,
+                                        )
+                                    }
                                     updateDeviceSettings(context)
                                     ToastManager.show(
                                         context,
