@@ -309,13 +309,16 @@ fun ImportSettingsDialog(
                                     }
 
                                 if (success) {
-                                    // Importing new MQTT credentials must replace the
-                                    // live client instead of retaining stale in-memory auth.
+                                    // Importing new MQTT credentials must replace
+                                    // the
+                                    // live client instead of retaining stale
+                                    // in-memory auth.
                                     if (userSettings.mqttEnabled) {
                                         MqttManager.restart(
                                             context = context.applicationContext,
                                             cause =
-                                                OutboundDisconnectingEvent.DisconnectCause
+                                                OutboundDisconnectingEvent
+                                                    .DisconnectCause
                                                     .USER_INITIATED_RESTART,
                                             onError = { error ->
                                                 if (error != null) {
@@ -335,7 +338,8 @@ fun ImportSettingsDialog(
                                         )
                                     } else {
                                         MqttManager.disconnect(
-                                            OutboundDisconnectingEvent.DisconnectCause
+                                            OutboundDisconnectingEvent
+                                                .DisconnectCause
                                                 .USER_INITIATED_SETTINGS_DISABLED,
                                         )
                                     }
